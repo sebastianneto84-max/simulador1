@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Aptitud</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #34495e;
+            --accent-color: #28a745;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --border-color: #e9ecef;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--card-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            display: none;
+            padding: 40px;
+        }
+        #quiz-page {
+            display: none;
+            flex-direction: row;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            border-right: 1px solid var(--border-color);
+            min-height: 600px;
+        }
+        .sidebar {
+            width: 350px;
+            padding: 40px;
+            background-color: #f1f3f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo {
+            width: 150px;
+            margin-bottom: 30px;
+        }
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-top: 0;
+            font-weight: 700;
+        }
+        h2 {
+            font-size: 1.8em;
+            text-transform: uppercase;
+        }
+        h3 {
+            font-size: 1.4em;
+        }
+        .question {
+            margin-bottom: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .question.active {
+            display: block;
+        }
+        .options label {
+            display: block;
+            margin: 15px 0;
+            cursor: pointer;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow-light);
+        }
+        .options label:hover {
+            background-color: #f1f3f5;
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        .options label.correct {
+            border: 2px solid #28a745;
+            background-color: #e2f9e4;
+        }
+        .options label.incorrect {
+            border: 2px solid #dc3545;
+            background-color: #fcebeb;
+        }
+        input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+            accent-color: var(--primary-color);
+        }
+        .image-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+        }
+        #timer {
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--primary-color);
+            background-color: #eaf4fb;
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .nav-panel {
+            width: 100%;
+        }
+        .nav-panel h4 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            color: var(--secondary-color);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .nav-buttons-block {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .nav-panel button {
+            width: 50px;
+            height: 50px;
+            font-size: 1.1em;
+            border: 1px solid var(--border-color);
+            background-color: #ecf0f3;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .nav-panel button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .nav-panel button.answered {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: #27ae60;
+        }
+        .nav-panel button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: #0060ad;
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .nav-panel button.flagged {
+            background-color: #ffc107;
+            color: white;
+            border-color: #e0a800;
+        }
+        .main-navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            gap: 20px;
+        }
+        .main-navigation-buttons button, #submit-btn, #flag-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-light);
+        }
+        #submit-btn {
+            background-color: var(--accent-color);
+            color: white;
+            margin-top: 30px;
+            width: 100%;
+        }
+        #submit-btn:hover {
+            background-color: #27ae60;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        #prev-btn, #next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            flex-grow: 1;
+        }
+        #prev-btn:hover, #next-btn:hover {
+            background-color: #0060ad;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        #flag-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        #flag-btn:hover {
+            background-color: #5a6268;
+        }
+        .intro-page {
+            max-width: 800px;
+            text-align: center;
+            background-color: var(--card-background);
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            animation: fadeIn 0.5s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .intro-page h1 {
+            border-bottom: none;
+            font-size: 2.8em;
+            margin-bottom: 20px;
+        }
+        .intro-page p {
+            font-size: 1.1em;
+            color: #6c757d;
+            text-align: justify;
+        }
+        .start-button {
+            background-color: var(--accent-color);
+            color: white;
+            font-size: 1.2em;
+            padding: 18px 40px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            margin-top: 40px;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .start-button:hover {
+            background-color: #27ae60;
+            transform: translateY(-3px);
+        }
+        #results-page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+        .results-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .results-score {
+            font-size: 2.5em; /* Ajustado para dar espacio a la nueva puntuación */
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        .results-section {
+            width: 100%;
+            margin-top: 30px;
+        }
+        .results-question-block {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 20px;
+        }
+        .results-question-block h4 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .results-question-block .options {
+            pointer-events: none;
+        }
+        .results-question-block .options label.correct {
+            border-color: #28a745;
+            background-color: #e2f9e4;
+            position: relative;
+        }
+        .results-question-block .options label.incorrect {
+            border-color: #dc3545;
+            background-color: #fcebeb;
+            position: relative;
+        }
+        .results-question-block .options label.correct::after {
+            content: '✓';
+            color: #28a745;
+            font-size: 1.5em;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .results-question-block .options label.incorrect::after {
+            content: '✕';
+            color: #dc3545;
+            font-size: 1.5em;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .image-options-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-options-container-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-option-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            width: 150px;
+            box-shadow: var(--shadow-light);
+        }
+        .image-option-label:hover {
+            background-color: #f1f3f5;
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        .image-option-label img {
+            height: 60px;
+            margin: 10px 0;
+            width: auto;
+        }
+        .image-options-container-vertical .image-option-label {
+            width: auto;
+            align-items: flex-start;
+        }
+        .image-options-container-vertical .image-option-label img {
+            height: auto;
+            max-width: 250px; /* <-- ESTA ES LA LÍNEA CORREGIDA */
+            margin-top: 10px;
+        }
+        .image-option-label input[type="radio"] {
+            margin: 0;
+        }
+        .image-option-label.correct {
+            border: 2px solid #28a745;
+            background-color: #e2f9e4;
+        }
+        .image-option-label.incorrect {
+            border: 2px solid #dc3545;
+            background-color: #fcebeb;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease-out;">
+    <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo" style="width: 200px; margin-bottom: 30px;">
+    <h2 style="color: var(--secondary-color); font-family: 'Montserrat', sans-serif;">Cargando Simulador</h2>
+    <div id="progress-bar-container" style="width: 50%; max-width: 400px; background-color: #e0e0e0; border-radius: 25px; margin-top: 20px; overflow: hidden;">
+        <div id="progress-bar" style="width: 0%; height: 25px; background-color: var(--primary-color); border-radius: 25px; transition: width 9.5s linear;"></div>
+    </div>
+</div>
+<div id="login-container" style="display: none; flex-direction: column; align-items: center; padding: 40px; background-color: var(--card-background); border-radius: 12px; box-shadow: var(--shadow-medium);">
+    <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo" style="width: 200px; margin-bottom: 20px;">
+    <h1>Iniciar Sesión</h1>
+    <p style="color: #6c757d; text-align: center;">Introduce tus credenciales para acceder al simulador.</p>
+    <form id="login-form" style="width: 100%; max-width: 400px; margin-top: 20px;">
+        <div style="margin-bottom: 20px;">
+            <label for="username" style="display: block; font-weight: bold; margin-bottom: 8px;">Usuario:</label>
+            <input type="text" id="username" name="username" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="password" style="display: block; font-weight: bold; margin-bottom: 8px;">Contraseña:</label>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 15px; border: none; border-radius: 50px; cursor: pointer; font-size: 1em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background-color: var(--primary-color); color: white; box-shadow: var(--shadow-light); transition: all 0.3s ease;">Entrar</button>
+        <p id="login-message" style="color: red; text-align: center; margin-top: 15px; display: none;"></p>
+    </form>
+</div>
+
+<div id="admin-dashboard" class="intro-page" style="display: none;">
+    <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo" style="width: 250px; margin-bottom: 40px;">
+    <h1>Panel de Administrador</h1>
+    <p>Bienvenido, administrador. Por favor, seleccione una opción.</p>
+    <button class="start-button" onclick="showIntroPage()">Simulador</button>
+    <button class="start-button" onclick="resetStudentAttempts()" style="margin-top: 20px; background-color: #007bff;">Resetear Usuarios</button>
+</div>
+
+<div id="intro-page-container" class="intro-page" style="display: none;">
+    <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo" style="width: 250px; margin-bottom: 40px;">
+    <h1>Simulador de Ingreso a la Universidad</h1>
+    <p>
+        Este documento es un mini cuestionario diseñado para que, quién lo realice, practique los ejercicios sobre tres habilidades de razonamiento: matemático, espacial y verbal, mismos que son utilizados por todas las universidades ecuatorianas, en mayor o menor proporción, para evaluar las aptitudes de los aspirantes y así obtener un cupo y ser admitido para estudiar una carrera de tercer nivel.
+        <br><br>
+        Esta prueba cuestionario consta de 12 ejercicios: cinco (5) de razonamiento matemático, tres (3) de razonamiento espacial y cuatro (4) de razonamiento verbal, todos de opción múltiple; cada uno tiene cuatro opciones y solo una es correcta; estos ejercicios son muy similares a los que tendrá que resolver cuando postule a la universidad de su preferencia.
+        <br><br>
+        El tiempo total permitido es de 15 minutos, es decir, 1,25 minutos por ejercicio, en promedio; también similar al tiempo dado en una prueba real.
+    </p>
+    <button class="start-button" onclick="startQuiz()">¡Empezar Examen!</button>
+</div>
+
+<div id="quiz-page">
+    <div class="main-content">
+        <h2 id="section-title"></h2>
+        <div id="question-container">
+        </div>
+        <div class="main-navigation-buttons">
+            <button id="prev-btn" onclick="prevQuestion()" style="display:none;">Anterior</button>
+            <button id="flag-btn" onclick="toggleFlaggedQuestion()"><i class="fas fa-flag"></i> Marcar Pregunta</button>
+            <button id="next-btn" onclick="nextQuestion()">Siguiente</button>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo">
+        <h3>Tiempo Restante</h3>
+        <div id="timer">15:00</div>
+        <h3>Navegación</h3>
+        <div class="nav-panel">
+            <h4>Aptitud Matemática</h4>
+            <div id="math-nav-buttons" class="nav-buttons-block"></div>
+            <h4>Aptitud Espacial</h4>
+            <div id="spatial-nav-buttons" class="nav-buttons-block"></div>
+            <h4>Aptitud Verbal</h4>
+            <div id="verbal-nav-buttons" class="nav-buttons-block"></div>
+        </div>
+        <button id="submit-btn" onclick="submitQuiz()">Enviar Examen</button>
+    </div>
+</div>
+
+<div id="results-page" class="container" style="display: none;">
+    <div class="results-header">
+        <img src="imagenes/imagenlogo.png" alt="Logo de la Universidad" class="logo" style="width: 200px;">
+        <h1>Resultados del Examen</h1>
+        <p class="results-score">Cargando...</p>
+        <button class="start-button" onclick="window.location.reload()">Volver a Intentar</button>
+    </div>
+    <div id="results-content" class="results-section">
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { id: 1, block: 'RAZONAMIENTO MATEMÁTICO', text: 'Considere la siguiente secuencia: -1, 1, 0, 1, 1, 2, __, 5, __ ¿Qué valores deben ir en los espacios vacíos?', options: ['a) 3 y 6', 'b) 4 y 6', 'c) 3 y 8', 'd) 4 y 7'], answer: 'c' },
+        { id: 2, block: 'RAZONAMIENTO MATEMÁTICO', text: 'Si K es un número natural, ¿cuáles expresiones representan dos números naturales impares consecutivos?', options: ['a) 2K-1 y 2K', 'b) 2K-1 y 2K+3', 'c) 2K+1 y 2K+2', 'd) 2K+1 y 2K+3'], answer: 'd' },
+        { id: 3, block: 'RAZONAMIENTO MATEMÁTICO', text: 'Dispongo de $80 y gasto 3/5 de lo que no gasto. ¿Cuánto gasto?', options: ['a) 42', 'b) 30', 'c) 48', 'd) 32'], answer: 'b' },
+        { id: 4, block: 'RAZONAMIENTO MATEMÁTICO', text: 'En el rectángulo ABCD, el punto E es el punto medio de BC. Si el área del cuadrilátero ABED es 2/3; ¿cuál es el área del rectángulo ABCD?', image: 'imagenes/ejercicio4.jpg', imageStyle: 'max-width: 250px;', options: ['a) 8/9', 'b) 1/2', 'c) 3/4', 'd) 1'], answer: 'a' },
+        { id: 5, block: 'RAZONAMIENTO MATEMÁTICO', text: 'Una papelería tiene 600 reglas en existencia. Suministra 3/8 de las reglas al cliente A, 1/4 al cliente B y 1/6 al cliente C; ¿el número de reglas que aún quedan en la papelería es?', options: ['a) 48', 'b) 240', 'c) 125', 'd) 102'], answer: 'c' },
+        { id: 6, block: 'RAZONAMIENTO ESPACIAL', text: 'Considere las siguientes figuras: ¿Cuál figura tiene un patrón diferente de las otras?', image: 'imagenes/ejercicio6.jpg', options: ['a) Figura 1', 'b) Figura 2', 'c) Figura 4', 'd) Figura 5'], answer: 'c' },
+        { id: 7, block: 'RAZONAMIENTO ESPACIAL', text: '¿Qué opción va en el lugar del signo de interrogación?', image: 'imagenes/ejercicio7.jpg', imageStyle: 'max-width: 250px;', options: ['a)', 'b)', 'c)', 'd)'], optionImages: ['imagenes/ejercicio7a.jpg', 'imagenes/ejercicio7b.jpg', 'imagenes/ejercicio7c.jpg', 'imagenes/ejercicio7d.jpg'], answer: 'b' },
+        { id: 8, block: 'RAZONAMIENTO ESPACIAL', text: 'Considerando la figura que se muestra a continuación. ¿Cuál opción corresponde a la cuarta fila?', image: 'imagenes/ejercicio8.jpg', imageStyle: 'max-width: 250px;', options: ['a)', 'b)', 'c)', 'd)'], optionImages: ['imagenes/ejercicio8a.jpg', 'imagenes/ejercicio8b.jpg', 'imagenes/ejercicio8c.jpg', 'imagenes/ejercicio8d.jpg'], answer: 'a' },
+        { id: 9, block: 'RAZONAMIENTO VERBAL', text: 'De las siguientes opciones escoja aquella que tiene un significado diferente a la palabra en mayúsculas. ALZAR', options: ['a) Levantar', 'b) Crecer', 'c) Elevar', 'd) Ascender'], answer: 'b' },
+        { id: 10, block: 'RAZONAMIENTO VERBAL', text: 'Seleccione la opción que contenga el par de palabras que den sentido a la oración. _________ la tormenta, no podíamos salir de nuestras casas hasta que ________.', options: ['a) Inundaba – acabara', 'b) Destruía – mitigara', 'c) Arreciaba – amainara', 'd) Apercibía – finalizara'], answer: 'c' },
+        { id: 11, block: 'RAZONAMIENTO VERBAL', text: 'Escoja la opción, aquella que tenga un significado diferente (que no comparte relación semántica) con la palabra escrita con letras mayúsculas. REMEMBRANZA', options: ['a) Recuerdo', 'b) Olvido', 'c) Añoranza', 'd) Evocación'], answer: 'b' },
+        { id: 12, block: 'RAZONAMIENTO VERBAL', text: 'Considere el siguiente texto: Disculpen esta impericia, esta torpeza al escribir. Me atropello, nada va en orden. No soy escritor... Según el texto, ¿cuál palabra es equivalente a “impericia”?', options: ['a) Desorden', 'b) Accidente', 'c) Negligencia', 'd) Incompetencia'], answer: 'd' }
+    ];
+
+    // ============== INICIO: TABLA DE PUNTAJES (NUEVO) ==============
+    const scoreMap = {
+        0: 0, 1: 500, 2: 570, 3: 635, 4: 695, 5: 750,
+        6: 800, 7: 845, 8: 885, 9: 915, 10: 945, 11: 970, 12: 1000
+    };
+    // ============== FIN: TABLA DE PUNTAJES (NUEVO) ==============
+
+    let userCredentials; 
+    const defaultUserCredentials = {
+        'admin': { password: 'anturio2025%', maxAttempts: Infinity, attempts: 0, role: 'admin' },
+        'estudiante': { password: 'estudiante123', maxAttempts: 2, attempts: 0, role: 'student' },
+    };
+    
+    let currentQuestionIndex = 0;
+    let timerInterval;
+    const totalTime = 15 * 60;
+    let timeRemaining = totalTime;
+    const userAnswers = {};
+    const flaggedQuestions = new Set();
+    let isQuizSubmitted = false;
+    let currentUser = null;
+    
+    // #############################################################
+    // ################ INICIO: LÓGICA CORREGIDA ###################
+    // #############################################################
+    
+    // ============== INICIO: LÓGICA DE CARGA Y LOGIN (MODIFICADO) ==============
+    document.addEventListener('DOMContentLoaded', () => {
+        // Lógica para la pantalla de carga
+        const loadingScreen = document.getElementById('loading-screen');
+        const loginContainer = document.getElementById('login-container');
+        const progressBar = document.getElementById('progress-bar');
+        
+        // Inicia la animación de la barra de progreso
+        setTimeout(() => {
+            progressBar.style.width = '100%';
+        }, 100);
+
+        // Oculta la pantalla de carga y muestra el login después de 10 segundos
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                loginContainer.style.display = 'flex';
+            }, 500); // Espera a que la transición de opacidad termine
+        }, 10000);
+
+        // Lógica original de inicialización de datos
+        initializeUserData();
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+    });
+    // ============== FIN: LÓGICA DE CARGA Y LOGIN (MODIFICADO) ==============
+
+    function initializeUserData() {
+        const storedUsers = localStorage.getItem('simuladorUserData');
+        if (storedUsers) {
+            try {
+                const parsedUsers = JSON.parse(storedUsers);
+                if (parsedUsers && parsedUsers.admin && parsedUsers.estudiante) {
+                    userCredentials = parsedUsers;
+                } else {
+                    throw new Error("Datos de usuario con formato incorrecto.");
+                }
+            } catch (error) {
+                console.error("Error al cargar datos de localStorage, se usarán los valores por defecto.", error);
+                userCredentials = defaultUserCredentials;
+                saveUserData();
+            }
+        } else {
+            userCredentials = defaultUserCredentials;
+            saveUserData();
+        }
+    }
+    
+    function saveUserData() {
+        localStorage.setItem('simuladorUserData', JSON.stringify(userCredentials));
+    }
+
+    function handleLogin(event) {
+        event.preventDefault();
+        const usernameInput = document.getElementById('username').value;
+        const passwordInput = document.getElementById('password').value;
+        const loginMessage = document.getElementById('login-message');
+        const user = userCredentials[usernameInput];
+
+        if (!user || user.password !== passwordInput) {
+            loginMessage.textContent = 'Usuario o contraseña incorrectos.';
+            loginMessage.style.color = 'red';
+            loginMessage.style.display = 'block';
+            return;
+        }
+
+        if (user.role === 'student' && user.attempts >= user.maxAttempts) {
+            loginMessage.textContent = `Has excedido el número máximo de ${user.maxAttempts} intentos.`;
+            loginMessage.style.color = 'red';
+            loginMessage.style.display = 'block';
+            document.getElementById('login-form').querySelector('button[type="submit"]').disabled = true;
+            return;
+        }
+
+        currentUser = usernameInput;
+
+        if (user.role === 'admin') {
+            loginMessage.textContent = 'Inicio de sesión exitoso como Administrador.';
+            loginMessage.style.color = 'green';
+            loginMessage.style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('admin-dashboard').style.display = 'flex';
+                loginMessage.style.display = 'none';
+            }, 1000);
+
+        } else if (user.role === 'student') {
+            user.attempts++; 
+            saveUserData();
+            const attemptsLeft = user.maxAttempts - user.attempts;
+            loginMessage.textContent = `Inicio de sesión exitoso. Te quedan ${attemptsLeft} intento(s).`;
+            loginMessage.style.color = 'green';
+            loginMessage.style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('intro-page-container').style.display = 'flex';
+                loginMessage.style.display = 'none';
+            }, 1500);
+        }
+    }
+
+    function resetStudentAttempts() {
+        initializeUserData(); 
+        for (const username in userCredentials) {
+            if (userCredentials[username].role === 'student') {
+                userCredentials[username].attempts = 0;
+            }
+        }
+        saveUserData();
+        alert('Los intentos del usuario "estudiante" han sido reseteados a 0.');
+        window.location.reload();
+    }
+    
+    // #############################################################
+    // ##################### FIN: LÓGICA CORREGIDA #####################
+    // #############################################################
+
+    function showIntroPage() {
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('intro-page-container').style.display = 'flex';
+    }
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        timeRemaining = totalTime;
+        Object.keys(userAnswers).forEach(key => delete userAnswers[key]);
+        flaggedQuestions.clear();
+        isQuizSubmitted = false;
+        document.getElementById('intro-page-container').style.display = 'none';
+        document.getElementById('quiz-page').style.display = 'flex';
+        renderQuiz();
+        startTimer();
+    }
+
+    function renderQuiz() {
+        renderNavigation();
+        renderQuestion(currentQuestionIndex);
+    }
+
+    function renderNavigation() {
+        document.getElementById('math-nav-buttons').innerHTML = '';
+        document.getElementById('spatial-nav-buttons').innerHTML = '';
+        document.getElementById('verbal-nav-buttons').innerHTML = '';
+        questions.forEach((q, index) => {
+            const button = document.createElement('button');
+            button.textContent = q.id;
+            button.onclick = () => renderQuestion(index);
+            const blockContainerId = 
+                q.block.includes('MATEMÁTICO') ? 'math-nav-buttons' :
+                q.block.includes('ESPACIAL') ? 'spatial-nav-buttons' :
+                'verbal-nav-buttons';
+            if (userAnswers[q.id]) button.classList.add('answered');
+            if (flaggedQuestions.has(q.id)) button.classList.add('flagged');
+            if (index === currentQuestionIndex) button.classList.add('active');
+            document.getElementById(blockContainerId).appendChild(button);
+        });
+    }
+
+    function renderQuestion(index) {
+        currentQuestionIndex = index;
+        const container = document.getElementById('question-container');
+        container.innerHTML = '';
+        const q = questions[index];
+        document.getElementById('section-title').textContent = q.block;
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'question active';
+        let html = `<h3>Pregunta ${q.id}.</h3><p>${q.text}</p>`;
+        if (q.image) {
+            const style = q.imageStyle || ''; // Usa el estilo si existe, si no, no aplica nada.
+            html += `<div class="image-container"><img src="${q.image}" alt="Imagen para el ejercicio ${q.id}" style="${style}"></div>`;
+        }
+        html += '<div class="options">';
+        if (q.optionImages) {
+            const containerClass = q.id === 8 ? 'image-options-container-vertical' : 'image-options-container';
+            html += `<div class="${containerClass}">`;
+            q.options.forEach((option, i) => {
+                const optionValue = String.fromCharCode(97 + i);
+                const checked = userAnswers[q.id] === optionValue ? 'checked' : '';
+                html += `
+                    <label class="image-option-label">
+                        <input type="radio" name="q${q.id}" value="${optionValue}" ${checked} onclick="handleOptionClick(${q.id}, this)">
+                        <span>${option}</span>
+                        <img src="${q.optionImages[i]}" alt="Opción ${optionValue}">
+                    </label>
+                `;
+            });
+            html += `</div>`;
+        } else {
+            q.options.forEach((option, i) => {
+                const optionValue = option.charAt(0).toLowerCase();
+                const checked = userAnswers[q.id] === optionValue ? 'checked' : '';
+                html += `
+                    <label>
+                        <input type="radio" name="q${q.id}" value="${optionValue}" ${checked} onclick="handleOptionClick(${q.id}, this)">
+                        ${option}
+                    </label>
+                `;
+            });
+        }
+        html += '</div>';
+        questionDiv.innerHTML = html;
+        container.appendChild(questionDiv);
+        updateNavigationButtons();
+    }
+
+    function handleOptionClick(questionId, element) {
+        userAnswers[questionId] = element.value;
+        renderNavigation();
+    }
+
+    function updateNavigationButtons() {
+        document.getElementById('next-btn').style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'block';
+        document.getElementById('prev-btn').style.display = currentQuestionIndex === 0 ? 'none' : 'block';
+        const flagBtn = document.getElementById('flag-btn');
+        if (flaggedQuestions.has(questions[currentQuestionIndex].id)) {
+            flagBtn.style.backgroundColor = '#ffc107';
+        } else {
+            flagBtn.style.backgroundColor = '#6c757d';
+        }
+        renderNavigation();
+    }
+
+    function toggleFlaggedQuestion() {
+        const currentId = questions[currentQuestionIndex].id;
+        if (flaggedQuestions.has(currentId)) {
+            flaggedQuestions.delete(currentId);
+        } else {
+            flaggedQuestions.add(currentId);
+        }
+        updateNavigationButtons();
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < questions.length - 1) renderQuestion(currentQuestionIndex + 1);
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) renderQuestion(currentQuestionIndex - 1);
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                submitQuiz();
+                return;
+            }
+            timeRemaining--;
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function submitQuiz() {
+        clearInterval(timerInterval);
+        isQuizSubmitted = true;
+        document.getElementById('quiz-page').style.display = 'none';
+        document.getElementById('results-page').style.display = 'flex';
+        displayResultsPage();
+    }
+
+    function calculateResults() {
+        let correctAnswers = 0;
+        questions.forEach(q => {
+            if (userAnswers[q.id] === q.answer) {
+                correctAnswers++;
+            }
+        });
+        return { correctAnswers, totalQuestions: questions.length };
+    }
+
+    // ============== INICIO: FUNCIÓN DE RESULTADOS (MODIFICADO) ==============
+    function displayResultsPage() {
+        // Prevenir duplicados si la función se llama varias veces
+        const existingAdjustedScore = document.querySelector('.adjusted-score-display');
+        if (existingAdjustedScore) {
+            existingAdjustedScore.remove();
+        }
+
+        const results = calculateResults();
+        const resultsScoreEl = document.querySelector('.results-score');
+        
+        // Muestra los aciertos y el porcentaje
+        resultsScoreEl.textContent = `Aciertos: ${results.correctAnswers} / ${results.totalQuestions} (${(results.correctAnswers / results.totalQuestions * 100).toFixed(1)}%)`;
+        
+        // Busca la puntuación ajustada en el mapa
+        const adjustedScore = scoreMap[results.correctAnswers] || 0;
+        
+        // Crea y muestra el nuevo elemento para la puntuación ajustada
+        const adjustedScoreEl = document.createElement('p');
+        adjustedScoreEl.className = 'results-score adjusted-score-display'; // Se usa la misma clase para estilo similar
+        adjustedScoreEl.style.marginTop = '15px';
+        adjustedScoreEl.style.fontSize = '2.8em'; // Un poco más grande para destacar
+        adjustedScoreEl.innerHTML = `Puntuación Final: <strong style="color: var(--accent-color);">${adjustedScore} / 1000</strong>`;
+        
+        resultsScoreEl.parentNode.insertBefore(adjustedScoreEl, resultsScoreEl.nextSibling);
+
+        const resultsContent = document.getElementById('results-content');
+        resultsContent.innerHTML = '';
+        
+        // Lógica para mostrar el detalle de cada pregunta (sin cambios)
+        questions.forEach(q => {
+            const userAnswer = userAnswers[q.id];
+            const isCorrect = userAnswer === q.answer;
+            const block = document.createElement('div');
+            block.className = 'results-question-block';
+            let html = `<h4>Pregunta ${q.id}. ${q.block}</h4><p>${q.text}</p>`;
+            if (q.image) {
+                const style = q.imageStyle || ''; // Se añade el estilo aquí también para la página de resultados
+                html += `<div class="image-container"><img src="${q.image}" alt="Imagen para el ejercicio ${q.id}" style="${style}"></div>`;
+            }
+            html += '<div class="options">';
+            if (q.optionImages) {
+                const containerClass = q.id === 8 ? 'image-options-container-vertical' : 'image-options-container';
+                html += `<div class="${containerClass}">`;
+                q.options.forEach((option, i) => {
+                    const optionValue = String.fromCharCode(97 + i);
+                    const isSelected = userAnswer === optionValue;
+                    const isTheCorrectAnswer = q.answer === optionValue;
+                    let labelClass = 'image-option-label';
+                    if (isSelected && isCorrect) labelClass += ' correct';
+                    else if (isSelected && !isCorrect) labelClass += ' incorrect';
+                    else if (isTheCorrectAnswer) labelClass += ' correct';
+                    html += `
+                        <label class="${labelClass}">
+                            <input type="radio" name="results_q${q.id}" value="${optionValue}" ${isSelected ? 'checked' : ''} disabled>
+                            <span>${option}</span>
+                            <img src="${q.optionImages[i]}" alt="Opción ${optionValue}">
+                        </label>`;
+                });
+                html += `</div>`;
+            } else {
+                q.options.forEach((option, i) => {
+                    const optionValue = option.charAt(0).toLowerCase();
+                    const isSelected = userAnswer === optionValue;
+                    const isTheCorrectAnswer = q.answer === optionValue;
+                    let labelClass = '';
+                    if (isSelected && isCorrect) labelClass = 'correct';
+                    else if (isSelected && !isCorrect) labelClass = 'incorrect';
+                    else if (isTheCorrectAnswer) labelClass = 'correct';
+                    html += `
+                        <label class="${labelClass}">
+                            <input type="radio" name="results_q${q.id}" value="${optionValue}" ${isSelected ? 'checked' : ''} disabled>
+                            ${option}
+                        </label>`;
+                });
+            }
+            html += '</div>';
+            if (!isCorrect) {
+                html += `<p style="color: red; margin-top: 10px;">Tu respuesta: ${userAnswer ? userAnswer.toUpperCase() : 'Ninguna'}. Respuesta correcta: <strong>${q.answer.toUpperCase()}</strong></p>`;
+            } else {
+                html += `<p style="color: green; margin-top: 10px;">¡Respuesta correcta!</p>`;
+            }
+            block.innerHTML = html;
+            resultsContent.appendChild(block);
+        });
+    }
+    // ============== FIN: FUNCIÓN DE RESULTADOS (MODIFICADO) ==============
+
+</script>
+
+</body>
+</html>
